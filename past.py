@@ -1,4 +1,4 @@
-#coding: utf-8
+# coding: utf-8
 
 #
 # @note: 这里两张照片层叠选择的方法是：
@@ -7,13 +7,15 @@
 #
 
 from __future__ import division
-import PIL 
-import Image
+import PIL
+# import Image
+from PIL import Image
 import numpy
 import os
 import random
 import time
-import ImageFont, ImageDraw
+# import ImageFont, ImageDraw
+from PIL import ImageFont, ImageDraw
 
 STAG = time.time()
 
@@ -22,48 +24,53 @@ STAG = time.time()
 # W_size: 照片宽为多少
 # H_size: 照片高为多少
 # root: 脚本的根目录
-root=""
-W_num =15
-H_num = 15
-W_size = 640
-H_size = 360
+root = ""
+W_num = 1
+H_num = 1
+W_size = 456
+H_size = 256
 
 # aval: 存放所有照片的路径
-alpha = 0.5
+alpha = 1.0
 aval = []
+
 
 # name: transfer
 # todo: 将照片转为一样的大小
-def transfer(img_path, dst_width,dst_height):
-
+def transfer(img_path, dst_width, dst_height):
     STA = time.time()
     im = Image.open(img_path)
     if im.mode != "RGBA":
         im = im.convert("RGBA")
-    s_w,s_h = im.size
+    s_w, s_h = im.size
     if s_w < s_h:
         im = im.rotate(90)
-	
-    #if dst_width*0.1/s_w > dst_height*0.1/s_h:
+
+    # if dst_width*0.1/s_w > dst_height*0.1/s_h:
     #    ratio = dst_width*0.1/s_w
-    #else:
+    # else:
     #    ratio = dst_height*0.1/s_h
-    resized_img = im.resize((dst_width, dst_height), Image.ANTIALIAS)  
-    resized_img = resized_img.crop((0,0,dst_width,dst_height))
-    print "transfer Func Time %s"%(time.time()-STA)
+    resized_img = im.resize((dst_width, dst_height), Image.ANTIALIAS)
+    resized_img = resized_img.crop((0, 0, dst_width, dst_height))
+    print("transfer Func Time %s" % (time.time() - STA))
 
     return resized_img
+
 
 # name: getAllPhotos
 # todo: 获得所有照片的路径
 def getAllPhotos():
     STA = time.time()
     root = os.getcwd() + "/"
-    src = root+"/photos/"
+    src = root + "/photos/"
     for i in os.listdir(src):
-	    if os.path.splitext(src+i)[-1] == ".jpg" or os.path.splitext(src+i)[-1] == ".png":
-		    aval.append(src+i)
-    print "getAllPhotos Func Time %s"%(time.time()-STA)
+        if os.path.splitext(src + i)[-1] == ".jpg" or os.path.splitext(src + i)[-1] == ".png":
+            aval.append(src + i)
+    print("getAllPhotos Func Time %s" % (time.time() - STA))
+
+
+
+
 
 # name: createNevImg
 # todo: 创建一张新的照片并保存
@@ -71,60 +78,111 @@ def createNevImg():
     STAA = time.time()
     iW_size = W_num * W_size
     iH_size = H_num * H_size
-    print root
-    I = numpy.array(transfer(root+"lyf.jpg", iW_size, iH_size)) * 1.0
+    root = os.getcwd() + "/"
+    print(root)
+    # I = numpy.array(transfer(root + "lyf.jpg", iW_size, iH_size)) * 1.0
+    I = numpy.array(transfer(root + "./photos/" + "u1.jpg", iW_size, iH_size)) * 1.0
 
     for i in range(W_num):
         for j in range(H_num):
             s = random.choice(aval)
-            res = I[ j*H_size:(j+1)*H_size, i*W_size:(i+1)*W_size] * numpy.array(transfer(s, W_size, H_size))/255
-            I[ j*H_size:(j+1)*H_size, i*W_size:(i+1)*W_size] = res
+            res = I[j * H_size:(j + 1) * H_size, i * W_size:(i + 1) * W_size] * numpy.array(
+                transfer(s, W_size, H_size)) / 255
+            I[j * H_size:(j + 1) * H_size, i * W_size:(i + 1) * W_size] = res
 
     img = Image.fromarray(I.astype(numpy.uint8))
-    img = img.point(lambda i : i * 1.5)
-    img.save("createNevImg_past.jpg")	
-    print "createNevImg Func time %s"%(time.time()-STAA)
+    img = img.point(lambda i: i * 1.5)
+    img = img.convert('RGB')
+    img.save("createNevImg_past.jpg")
+    print("createNevImg Func time %s" % (time.time() - STAA))
 
 
 # name: newRotateImage
 # todo: 将createnevimg中得到的照片旋转，粘贴到另外一张照片中
 def newRotateImage():
     imName = "createNevImg_past.jpg"
-    print "正在将图片旋转中..."
+    print("正在将图片旋转中...")
     STA = time.time()
     im = Image.open(imName)
-    im2 = Image.new("RGBA", (W_size * int(W_num + 1), H_size * (H_num + 4)))
-    im2.paste(im, (int(0.5 * W_size), int(0.8 * H_size)))
-    im2 = im2.rotate(359)
+    im2 = Image.new("RGBA", (W_size, H_size))
+    im2.paste(im, (0, 0))
+    # im2.paste(im, (int(0.5 * W_size), int(0.8 * H_size)))
+    # im2 = im2.rotate(359)
+    im2 = im2.convert('RGB')
     im2.save("newRotateImage_past.jpg")
-    print "newRotateImage Func Time %s"%(time.time()-STA)
+    print("newRotateImage Func Time %s" % (time.time() - STA))
 
 
-# name: writetoimage
-# todo: 在图片中写祝福语
-def writeToImage():
-    print "正在向图片中添加祝福语..."
+# # name: newRotateImage
+# # todo: 将createnevimg中得到的照片旋转，粘贴到另外一张照片中
+# def newRotateImage():
+#     imName = "createNevImg_past.jpg"
+#     print("正在将图片旋转中...")
+#     STA = time.time()
+#     im = Image.open(imName)
+#     im2 = Image.new("RGBA", (W_size * int(W_num + 1), H_size * (H_num + 4)))
+#     im2.paste(im, (int(0.5 * W_size), int(0.8 * H_size)))
+#     # im2 = im2.rotate(359)
+#     im2 = im2.convert('RGB')
+#     im2.save("newRotateImage_past.jpg")
+#     print("newRotateImage Func Time %s" % (time.time() - STA))
+
+# # name: writetoimage
+# # todo: 在图片中写祝福语
+# def writeToImage():
+#     print("正在向图片中添加祝福语...")
+#     STA = time.time()
+#     img = Image.open("newRotateImage_past.jpg")
+#     font = ImageFont.truetype('xindexingcao57.ttf', 600)
+#     draw = ImageDraw.Draw(img)
+#     draw.ink = 21 + 118 * 256 + 65 * 256 * 256
+#
+#     #    draw.text((0,H_size * 6),unicode("happy every day",'utf-8'),(0,0,0),font=font)
+#
+#     tHeight = H_num + 1
+#     draw.text((W_size * 0.5, H_size * tHeight), "happy life written by python", font=font)
+#     img.save("final_past.jpg")
+#     print("writeToImage Func Time %s" % (time.time() - STA))
+
+
+
+def readImage():
     STA = time.time()
-    img = Image.open("newRotateImage_past.jpg")
-    font = ImageFont.truetype('xindexingcao57.ttf', 600)
-    draw = ImageDraw.Draw(img)
-    draw.ink = 21 + 118*256 + 65*256*256
+    root = os.getcwd() + "/"
+    im = Image.open(root + "/photos/" + "u2.jpg").convert('L')
+    im2 = Image.open(root + "/photos/" + "v2.jpg").convert('L')
+    print("readImage Func Time %s" % (time.time() - STA))
+    return im, im2
 
-#    draw.text((0,H_size * 6),unicode("happy every day",'utf-8'),(0,0,0),font=font)
-
-    tHeight = H_num + 1
-    draw.text((W_size * 0.5, H_size * tHeight), "happy life written by python", font = font)
-    img.save("final_past.jpg")
-    print "writeToImage Func Time %s"%(time.time()-STA)
 
 
 # name:
 # todo: 入口函数
 if __name__ == "__main__":
+    # getAllPhotos()
+    # createNevImg()
+    # newRotateImage()
+    # writeToImage()
+    im, im2 = readImage()
+    # im.paste(im2, (0, 0), mask=im2)
+    # im3 = Image.blend(im, im2, 1)
+    # im.save("output.jpg")
+    # im3.save("output2.jpg")
 
-    getAllPhotos()
-    createNevImg()
-    newRotateImage()
-    writeToImage()
-    print "Total Time %s"%(time.time()-STAG)
+    arr = numpy.array(im)
+    arr2 = numpy.array(im2)
 
+    im.save("output.jpg")
+    im2.save("output2.jpg")
+
+    arr3 = arr / 2 + arr2 / 2
+
+    arr4 = numpy.stack((arr, arr2, arr3), axis=2)
+
+    im3 = Image.fromarray(arr3.astype(numpy.uint8))
+    im3.save("output3.jpg")
+
+    im4 = Image.fromarray(arr4.astype(numpy.uint8)).convert('RGB')
+    im4.save("output4.jpg")
+
+    print("Total Time %s" % (time.time() - STAG))
